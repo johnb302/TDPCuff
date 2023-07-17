@@ -17,8 +17,8 @@ class Arduino:
             time_string = now.strftime("%H:%M:%S:%f")
             self.serial.write(b'A4\n')  # Request reading from A4
             value_A4 = float(self.serial.readline().decode().strip())
+            print(value_A4)
             barrier.wait()
-            print(f'{value_A4}')
             print(time_string)
             #self.serial.write(b'A5\n')  # Request reading from A5
             #value_A5 = float(self.serial.readline().decode().strip())
