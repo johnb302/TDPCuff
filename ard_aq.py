@@ -2,9 +2,6 @@
 from arduino import *
 import multiprocessing as mp
 
-def openArduino(barrier, port, baudrate):
-    ard = Arduino(port, baudrate)
-    ard.read(barrier)
 
 if __name__ == "__main__":
 
@@ -14,17 +11,16 @@ if __name__ == "__main__":
     arduino_ports = ["COM3", "COM5", "COM9"]
 
     helper_processes = []
+
+    a = Arduino(115200,'COM3')
+    a.read()
     #for _ in range(2):
         #helper_processes.append(mp.Process(target = ))
 
-    ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, port, 9600)) for port in arduino_ports]
+    #ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, port)) for port in arduino_ports]
 
-    for p in ard_processes:
-        p.start()
+    #for p in ard_processes:
+        #p.start()
 
-    for process in ard_processes:
-        process.join()
-
-    
-
-        
+    #for process in ard_processes:
+        #process.join()

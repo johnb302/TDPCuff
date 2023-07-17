@@ -10,7 +10,7 @@ class Arduino:
         self.serial = serial.Serial(port, baudrate) #115200
         self.run = True
 
-    def read(self, barrier):
+    def read(self):
         while self.run:
             # Get the current time
             now = datetime.now()
@@ -18,7 +18,6 @@ class Arduino:
             self.serial.write(b'A4\n')  # Request reading from A4
             value_A4 = float(self.serial.readline().decode().strip())
             print(value_A4)
-            barrier.wait()
             print(time_string)
             #self.serial.write(b'A5\n')  # Request reading from A5
             #value_A5 = float(self.serial.readline().decode().strip())
