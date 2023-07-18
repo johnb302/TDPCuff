@@ -1,26 +1,31 @@
 #Libraries
 from arduino import *
+from plotter import *
 import multiprocessing as mp
 
+def openArduino(barrier, name, port, baudrate = 115200):
+    ard = Arduino(port, baudrate, name)
+    ard.read(barrier)
 
+def startPlotter():
+    plotter = Plotter()
+    plotter.plot()
+
+    
 if __name__ == "__main__":
 
     #initial_barrier = mp.Barrier(3)
     sensor_barrier = mp.Barrier(3)
 
-    arduino_ports = ["COM3", "COM5", "COM9"]
+    ports = ["COM3", "COM5", "COM9"]
+    names = ["G", "B", "R"]
 
-    helper_processes = []
+    ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
+                        names[i], ports[i])) for i in range(len(ports))]
+    ard_processes.append(mp.Process(target = startPlotter, args=()))
 
-    a = Arduino(115200,'COM3')
-    a.read()
-    #for _ in range(2):
-        #helper_processes.append(mp.Process(target = ))
+    for p in ard_processes:
+        p.start()
 
-    #ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, port)) for port in arduino_ports]
-
-    #for p in ard_processes:
-        #p.start()
-
-    #for process in ard_processes:
-        #process.join()
+    for process in ard_processes:
+        process.join()
