@@ -7,13 +7,12 @@ def openArduino(barrier, name, port, dqueue, baudrate = 115200):
     ard = Arduino(port, baudrate, name, dqueue)
     ard.read(barrier)
 
-def startPlotter():
-    plotter = Plotter()
-    plotter.plot()
+def startPlotter(dqueue):
+    plotter = RealTimePlotter(dqueue)
+    plotter.start()
 
 if __name__ == "__main__":
 
-    #initial_barrier = mp.Barrier(3)
     sensor_barrier = mp.Barrier(3)
     dataQueue = mp.Queue()
 
@@ -22,7 +21,7 @@ if __name__ == "__main__":
 
     ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
                         names[i], ports[i], dataQueue)) for i in range(len(ports))]
-    #ard_processes.append(mp.Process(target = startPlotter, args=()))
+    ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue,)))
 
     for p in ard_processes:
         p.start()
