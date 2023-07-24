@@ -17,7 +17,7 @@ if __name__ == "__main__":
     dataQueue = mp.Queue()
 
     ports = ["COM3", "COM5", "COM9"]
-    names = ["G", "B", "R"]
+    names = ["G", "R", "B"]
 
     ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
                         names[i], ports[i], dataQueue)) for i in range(len(ports))]
