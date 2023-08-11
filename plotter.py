@@ -1,21 +1,43 @@
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtWidgets
 import queue
+from PyQt6.QtGui import QFont
 
 class RealTimePlotter(object):
-    def __init__(self, q):
+    def __init__(self, q, colors):
         self.q = q
+        self.colors = colors
         self.app = pg.mkQApp("Sensor Plot")
+        self.view = pg.widgets.RemoteGraphicsView.RemoteGraphicsView()
 
         self.win = pg.GraphicsLayoutWidget(show=True, title="Sensor Plot")
         self.win.resize(1000,600)
         self.win.setWindowTitle('Live Plotter')
-
-        pg.setConfigOptions(antialias=True)
+        self.win.setBackground('w')
+    
+        self.view.pg.setConfigOptions(antialias=True)
 
         self.plot = self.win.addPlot(title='Real Time Plot')
-        self.plot.showGrid(x=True, y=True)
+        self.plot.showGrid(x=False, y=False)
+        self.plot.setYRange(0,0.25)
+        self.plot.enableAutoRange('y', False)
+
+        self.tick_font = QFont()
+        self.tick_font.setPointSize(18)
+        self.tick_font.setBold(True)  # Set tick font to bold
+
+        # Customize the x-axis
+        self.x_axis = self.plot.getAxis('bottom')
+        self.x_axis.setPen(pg.mkPen(color='k', width=3))
+        self.x_axis.setLabel('# of Sensor Readings', **{'font-size': '24pt'})
+        self.x_axis.setStyle(tickFont=self.tick_font)
+
+        # Customize the y-axis
+        self.y_axis = self.plot.getAxis('left')
+        self.y_axis.setPen(pg.mkPen(color='k', width=3))
+        self.y_axis.setLabel('Voltage (volts)', **{'font-size': '24pt'})
+        self.y_axis.setStyle(tickFont=self.tick_font)
 
         self.data = {}
         self.curves = {}
@@ -34,23 +56,21 @@ class RealTimePlotter(object):
 
                 if sensorname == "STOP":
                     self.stop_signal += 1
-                    if self.stop_signal == 3: self.timer.stop() #QtGui.QApplication.instance().quit()
+                    if self.stop_signal == 3: self.timer.stop()
                     continue
 
                 if sensorname not in self.data:
-                    self.data[sensorname] = np.zeros(1000)  # Start with 1000 zeros
-                    self.curves[sensorname] = self.plot.plot(pen=pg.mkPen(color=(np.random.randint(0,255), 
-                                                                                 np.random.randint(0,255), np.random.randint(0,255)), 
-                                                                                 width=2))
+                    self.data[sensorname] = np.zeros(1000)  # Start with 1000 zeros using NumPy array
+                    self.curves[sensorname] = self.plot.plot(pen=pg.mkPen(
+                        color=(self.colors[sensorname]), width=2))
                     self.ptr[sensorname] = 0
 
-                # Shift data in the array one sample left
-                self.data[sensorname][:-1] = self.data[sensorname][1:]  
-                # Append the new value
-                self.data[sensorname][-1] = data  
+                self.data[sensorname] = np.append(self.data[sensorname], data)
 
                 self.curves[sensorname].setData(self.data[sensorname])
-                self.curves[sensorname].setPos(self.ptr[sensorname], 0)
+                # Update the X range to show the most recent 1000 data points
+                self.plot.setXRange(max(0, len(self.data[sensorname]) - 1000), len(self.data[sensorname]))
+
                 self.ptr[sensorname] += 1
 
             except queue.Empty:
