@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import serial
+import dataWriter as dw
 
 '''
 Print Sensor Readings Code:
@@ -26,19 +27,24 @@ class Arduino:
 
         while self.run:
             try:
+                data = dw.Recorder(self.name)
+
                 self.serial.write(b'A4\n')  # Request reading from A4
                 value_A4 = float(self.serial.read_until(expected=b'\n').decode().strip())
                 self.dq.put([self.name+'4', value_A4])
+                data.add(1, value_A4)
                 barrier.wait(timeout=5)
 
                 self.serial.write(b'A5\n') #A5 Reading
                 value_A5 = float(self.serial.read_until(expected=b'\n').decode().strip())
                 self.dq.put([self.name+'5',value_A5])
+                data.add(2, value_A5)
                 barrier.wait(timeout=5)
 
                 self.serial.write(b'A6\n') #A6 Reading
                 value_A6 = float(self.serial.read_until(expected=b'\n').decode().strip())
                 self.dq.put([self.name+'6',value_A6])
+                data.add(3, value_A6)
                 barrier.wait(timeout=5)
 
                 time.sleep(0.001)
@@ -46,6 +52,7 @@ class Arduino:
             except: 
                 self.dq.put(["STOP", -1.0])
                 self.stop()
+                data.writeData()
 
         print(f"{self.name} has stopped!")
 
