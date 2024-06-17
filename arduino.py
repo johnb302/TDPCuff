@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 import serial
-import dataWriter as dw
+from dataWriter import Recorder
 
 '''
 Print Sensor Readings Code:
@@ -24,11 +24,10 @@ class Arduino:
         print(f'{self.name} preparing to run...')
         self.serial.reset_input_buffer()
         time.sleep(2) #Allow time for Arduinos to prepare
+        data = Recorder(self.name)
 
         while self.run:
             try:
-                data = dw.Recorder(self.name)
-
                 self.serial.write(b'A4\n')  # Request reading from A4
                 value_A4 = float(self.serial.read_until(expected=b'\n').decode().strip())
                 self.dq.put([self.name+'4', value_A4])
