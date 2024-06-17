@@ -30,7 +30,7 @@ if __name__ == "__main__":
     sensor_barrier = mp.Barrier(3)
     dataQueue = mp.Queue()
 
-    ports = ["COM18", "COM19", "COM20"]
+    ports = ["/dev/ttyUSB1", "/dev/ttyUSB0", "/dev/ttyUSB2"]
     names = ["B", "R", "G"]
 
     ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
