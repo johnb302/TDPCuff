@@ -23,8 +23,8 @@ class Arduino:
     def read(self, barrier):
         print(f'{self.name} preparing to run...')
         self.serial.reset_input_buffer()
-        time.sleep(2) #Allow time for Arduinos to prepare
         data = Recorder(self.name)
+        time.sleep(2) #Allow time for Arduinos to prepare
 
         while self.run:
             try:
