@@ -1,8 +1,11 @@
+import PyQt6.QtGui
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtWidgets
 import queue
 from PyQt6.QtGui import QFont
+from arduino import Arduino
+import ard_aq
 
 class RealTimePlotter(object):
     def __init__(self, q, colors):
@@ -38,6 +41,13 @@ class RealTimePlotter(object):
         self.y_axis.setPen(pg.mkPen(color='k', width=3))
         self.y_axis.setLabel('Voltage (volts)', **{'font-size': '24pt'})
         self.y_axis.setStyle(tickFont=self.tick_font)
+
+        # Set push button to stop recording/plotting
+        self.button = QtWidgets.QPushButton('Stop Recording')
+        self.button.clicked.connect(self.stop)
+        self.proxy = QtWidgets.QGraphicsProxyWidget()
+        self.proxy.setWidget(self.button)
+        self.win.addItem(self.proxy)
 
         self.data = {}
         self.curves = {}
@@ -78,3 +88,7 @@ class RealTimePlotter(object):
 
     def start(self):
         self.app.exec()
+
+    def stop(self):
+        self.timer.stop()
+        self.app.quit()
