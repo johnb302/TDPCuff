@@ -11,14 +11,7 @@ class Recorder:
     def add(self, sensorNum, value):
         column_name = self.name + str(sensorNum)
         if column_name in self.matrix.columns:
-            if self.matrix.empty:
-                self.matrix.loc[len(self.matrix), column_name] = value
-            else:
-                for i in range(len(self.matrix[column_name])):
-                    if math.isnan(self.matrix.loc[i, column_name]):
-                        self.matrix.loc[i, column_name] = value
-        else:
-            print('Wrong board name./n')
+            self.matrix.loc[len(self.matrix), column_name] = value
 
     def writeData(self):
         self.matrix.to_csv(self.name + '_data.csv')
