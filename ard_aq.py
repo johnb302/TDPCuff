@@ -1,7 +1,8 @@
 #Libraries
 from arduino import *
-from plotter import *
 import multiprocessing as mp
+from plotter import *
+from process_manager import set_processes
 
 def openArduino(barrier, name, port, dqueue, baudrate = 115200):
     ard = Arduino(port, baudrate, name, dqueue)
@@ -35,7 +36,9 @@ if __name__ == "__main__":
 
     ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
                         names[i], ports[i], dataQueue)) for i in range(len(ports))]
-    ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue, sensorColors,)))
+    ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue, sensorColors)))
+
+    set_processes(ard_processes)
 
     for p in ard_processes:
         p.start()
