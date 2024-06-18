@@ -5,7 +5,7 @@ from pyqtgraph.Qt import QtCore, QtWidgets
 import queue
 from PyQt6.QtGui import QFont
 from arduino import Arduino
-import ard_aq
+from process_manager import terminate_processes
 
 class RealTimePlotter(object):
     def __init__(self, q, colors):
@@ -92,3 +92,4 @@ class RealTimePlotter(object):
     def stop(self):
         self.timer.stop()
         self.app.quit()
+        terminate_processes()
