@@ -50,12 +50,15 @@ class Arduino:
 
             except: 
                 self.dq.put(["STOP", -1.0])
-                self.stop()
+                # self.stop()
                 data.writeData()
-
+        
+        self.dq.put(["STOP", -1.0])
+        data.writeData()
         print(f"{self.name} has stopped!")
 
     def stop(self):
         self.run = False
-        self.serial.close()
+        if self.serial.is_open:
+            self.serial.close()
         print(f'Closed {self.name} Serial Connection')

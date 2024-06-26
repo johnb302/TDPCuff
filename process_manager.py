@@ -1,12 +1,12 @@
 import multiprocessing as mp
 
-ard_processes = []
+ard_instances = []
 
-def set_processes(process_list):
-    global ard_processes
-    ard_processes = process_list
+def set_instances(instance_list):
+    global ard_instances
+    ard_instances = instance_list
 
 def terminate_processes():
-    global ard_processes
-    for process in ard_processes:
-        process.terminate()
+    global ard_instances
+    for arduino in ard_instances:
+        arduino.stop()
