@@ -1,20 +1,17 @@
 #Libraries
 from arduino import *
-import serial.tools.list_ports
-import multiprocessing as mp
 from plotter import *
-from process_manager import set_instances
-import logging
+import multiprocessing as mp
 
 def openArduino(barrier, name, port, dqueue, baudrate = 115200):
     ard = Arduino(port, baudrate, name, dqueue)
     ard.read(barrier)
-    return ard
+    return
 
 def startPlotter(dqueue,colors):
     plotter = RealTimePlotter(dqueue,colors)
     plotter.start()
-    return plotter
+    return
 
 if __name__ == "__main__":
 
@@ -33,24 +30,29 @@ if __name__ == "__main__":
     sensor_barrier = mp.Barrier(3)
     dataQueue = mp.Queue()
 
-    ports = ["/dev/ttyUSB1", "/dev/ttyUSB0", "/dev/ttyUSB2"]
+    ports = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2"]
     names = ["B", "R", "G"]
 
     arduino_instances = [Arduino(ports[i], 115200, names[i], dataQueue) for i in range(len(ports))]
-    set_instances(arduino_instances)
 
     # ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
     #                      names[i], ports[i], dataQueue)) for i in range(len(ports))]
     ard_processes = [mp.Process(target = arduino_instances[i].read, args=(sensor_barrier,)) for i in range(len(ports))]
     ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue, sensorColors)))
 
-    #set_instances(arduino_instances)
+    process_manager.set_instances(arduino_instances)
 
     for p in ard_processes:
         p.start()
 
-    for process in ard_processes:
-        logging.debug(f"Joining process {process.name}")
-        process.join()
+    while stop_Flag.value != 3:
+        continue
+
+    for arduino in range(4):
+        ard_processes[arduino].terminate()
+        print('Joining Arduino...')
+        ard_processes[arduino].join()
+
 
     print("Acquisition Finished!")
+

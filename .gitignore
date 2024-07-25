@@ -3,3 +3,4 @@
 
 #Ignore Cache
 __pycache__/
+arduinoRead.ino

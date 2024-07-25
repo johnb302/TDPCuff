@@ -4,8 +4,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtWidgets
 import queue
 from PyQt6.QtGui import QFont
-from arduino import Arduino
-from process_manager import terminate_processes
+import process_manager
 
 ard_instances = []
 
@@ -25,7 +24,7 @@ class RealTimePlotter(object):
 
         self.plot = self.win.addPlot(title='Real Time Plot')
         self.plot.showGrid(x=False, y=False)
-        self.plot.setYRange(0,0.25)
+        self.plot.setYRange(0, 1.5)
         self.plot.enableAutoRange('y', False)
 
         self.tick_font = QFont()
@@ -93,5 +92,5 @@ class RealTimePlotter(object):
 
     def stop(self):
         self.timer.stop()
-        terminate_processes()
-        self.app.quit()
+        process_manager.terminate_processes()
+        # self.app.quit()

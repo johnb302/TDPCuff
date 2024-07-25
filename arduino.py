@@ -2,6 +2,8 @@ import time
 from datetime import datetime
 import serial
 from dataWriter import Recorder
+from test import stop_Flag
+
 
 '''
 Print Sensor Readings Code:
@@ -19,46 +21,52 @@ class Arduino:
         self.serial = serial.Serial(port, baudrate, timeout= 10)
         print(f'Arduino Connected!')
         self.run = True
+        self.data = Recorder(self.name)
 
     def read(self, barrier):
         print(f'{self.name} preparing to run...')
         self.serial.reset_input_buffer()
-        data = Recorder(self.name)
         time.sleep(2) #Allow time for Arduinos to prepare
 
         while self.run:
             try:
+                # write A4 to serial buffer so Serial.available() > 0 is true
                 self.serial.write(b'A4\n')  # Request reading from A4
-                value_A4 = float(self.serial.read_until(expected=b'\n').decode().strip())
-                self.dq.put([self.name+'4', value_A4])
-                data.add(1, value_A4)
+                value_A4 = float(self.serial.read_until(expected=b'\n').decode().strip().replace('\r.', ''))
+                self.dq.put([self.name+'4', value_A4]) # store value in queue
+                self.data.add(1, value_A4) # add value to recorder
                 barrier.wait(timeout=5)
 
+                # write A5 to serial buffer so Serial.available() > 0 is true
                 self.serial.write(b'A5\n') #A5 Reading
-                value_A5 = float(self.serial.read_until(expected=b'\n').decode().strip())
-                self.dq.put([self.name+'5',value_A5])
-                data.add(2, value_A5)
+                value_A5 = float(self.serial.read_until(expected=b'\n').decode().strip().replace('\r.', ''))
+                self.dq.put([self.name+'5',value_A5]) # store value in queue
+                self.data.add(2, value_A5) # add value to recorder
+                barrier.wait(timeout=5)
+                    
+                # write A5 to serial buffer so Serial.available() > 0 is true
+                self.serial.write(b'A6\n') #A6 Reading
+                value_A6 = float(self.serial.read_until(expected=b'\n').decode().strip().replace('\r.', ''))
+                self.dq.put([self.name+'6',value_A6]) # store value in queue
+                self.data.add(3, value_A6) # add value to recorder
                 barrier.wait(timeout=5)
 
-                self.serial.write(b'A6\n') #A6 Reading
-                value_A6 = float(self.serial.read_until(expected=b'\n').decode().strip())
-                self.dq.put([self.name+'6',value_A6])
-                data.add(3, value_A6)
-                barrier.wait(timeout=5)
+                self.data.writeData()
 
                 time.sleep(0.001)
 
-            except: 
+            except Exception: 
                 self.dq.put(["STOP", -1.0])
-                # self.stop()
-                data.writeData()
-        
-        self.dq.put(["STOP", -1.0])
-        data.writeData()
-        print(f"{self.name} has stopped!")
+                self.data.writeData()
+                print(Exception)
+
 
     def stop(self):
         self.run = False
+        print('Stop run')
+        self.dq.put(["STOP", -1.0])
+        stop_Flag.value += 1
         if self.serial.is_open:
             self.serial.close()
         print(f'Closed {self.name} Serial Connection')
+
