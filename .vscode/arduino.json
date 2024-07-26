@@ -3,6 +3,6 @@
     "configuration": "cpu=atmega328",
     "board": "arduino:avr:nano",
     "output": "../ArduinoOutput",
-    "port": "/dev/ttyUSB0",
+    "port": "/dev/ttyUSB3",
     "programmer": "avrisp"
 }

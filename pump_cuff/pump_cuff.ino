@@ -6,6 +6,7 @@ int sensr = 7;
 
 // Desired cuff pressure in mmHg
 int targetPressure = 75;
+String command = "empty";
 
 void setup() {
   Serial.begin(9600);
@@ -15,32 +16,42 @@ void setup() {
 }
 
 void loop() {
-  double sensorVoltage = (analogRead(sensr) * (4.5/1024)); // reading voltage from sensor
-  Serial.println(sensorVoltage);
-
-  // linear relationship obtained from calibration
-  double cuffPressure = 63.9531*sensorVoltage - 34.9409; // current pressure in the cuff
-  //Serial.println(cuffPressure);
-
-  if (cuffPressure < targetPressure)
-  {
-    // turn pump on to cuff
-    digitalWrite(vacu, LOW);
-    digitalWrite(valve, HIGH);
-    digitalWrite(pump, HIGH);
+  if (Serial.available() > 0) {
+    command = Serial.readStringUntil('\n');
   }
-  else if (cuffPressure > targetPressure*1.05)
-  {
-    // turn vacuum on to cuff
-    digitalWrite(pump, LOW);
-    digitalWrite(valve, LOW);
-    digitalWrite(vacu, HIGH);
-  }
-  else
-  {
-    // turn valve on. no air in or out
-    digitalWrite(pump, LOW);
-    digitalWrite(valve, HIGH);
-    while(1){;} // loop to hold pressure
+
+  if (command == "Start") {
+    double sensorVoltage = (analogRead(sensr) * (5.0 / 1024));  // reading voltage from sensor
+    //Serial.println(sensorVoltage);
+
+    // linear relationship obtained from calibration
+    double cuffPressure = 63.9531 * sensorVoltage - 34.9409;  // current pressure in the cuff
+    // Serial.println(cuffPressure);
+
+    if (cuffPressure < targetPressure) {
+      // turn pump on to cuff
+      digitalWrite(vacu, LOW);
+      digitalWrite(valve, HIGH);
+      digitalWrite(pump, HIGH);
+    } else {
+      command = "Finish";
+    }
+  } else if (command == "Finish") {
+    double sensorVoltage = (analogRead(sensr) * (5.0 / 1024));  // reading voltage from sensor
+    //Serial.println(sensorVoltage);
+
+    // linear relationship obtained from calibration
+    double cuffPressure = 63.9531 * sensorVoltage - 34.9409;  // current pressure in the cuff
+    // Serial.println(cuffPressure);
+
+    if (cuffPressure > 0) {
+      // turn pump on to cuff
+      digitalWrite(vacu, HIGH);
+      digitalWrite(valve, LOW);
+      digitalWrite(pump, LOW);
+    } else {
+      digitalWrite(vacu, LOW);
+      Serial.write("End\n");
+    }
   }
 }

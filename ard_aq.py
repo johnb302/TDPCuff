@@ -29,11 +29,15 @@ if __name__ == "__main__":
 
     sensor_barrier = mp.Barrier(3)
     dataQueue = mp.Queue()
+    emptyQueue = mp.Queue()
 
-    ports = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2"]
-    names = ["B", "R", "G"]
+    ports = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"]
+    names = ["B", "R", "G", "Cuff"]
 
-    arduino_instances = [Arduino(ports[i], 115200, names[i], dataQueue) for i in range(len(ports))]
+    # Instantiate 3 arduinos for data acquisition
+    arduino_instances = [Arduino(ports[i], 115200, names[i], dataQueue, True) for i in range(3)]
+    # Instantiate another arduino for cuff pressurization
+    arduino_instances.append(Arduino(ports[3], 9600, names[3], emptyQueue, False))
 
     # ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
     #                      names[i], ports[i], dataQueue)) for i in range(len(ports))]
@@ -45,14 +49,12 @@ if __name__ == "__main__":
     for p in ard_processes:
         p.start()
 
-    while stop_Flag.value != 3:
+    while stop_Flag.value != 4:
         continue
 
-    for arduino in range(4):
+    for arduino in range(5):
         ard_processes[arduino].terminate()
         print('Joining Arduino...')
         ard_processes[arduino].join()
 
-
     print("Acquisition Finished!")
-
