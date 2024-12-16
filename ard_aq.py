@@ -29,18 +29,32 @@ if __name__ == "__main__":
 
     sensor_barrier = mp.Barrier(3)
     dataQueue = mp.Queue()
+    emptyQueue = mp.Queue()
 
-    ports = ["COM18", "COM19", "COM20"]
-    names = ["B", "R", "G"]
+    ports = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"]
+    names = ["B", "R", "G", "Cuff"]
 
-    ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
-                        names[i], ports[i], dataQueue)) for i in range(len(ports))]
-    ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue, sensorColors,)))
+    # Instantiate 3 arduinos for data acquisition
+    arduino_instances = [Arduino(ports[i], 115200, names[i], dataQueue, True) for i in range(3)]
+    # Instantiate another arduino for cuff pressurization
+    arduino_instances.append(Arduino(ports[3], 9600, names[3], emptyQueue, False))
+
+    # ard_processes = [mp.Process(target=openArduino, args=(sensor_barrier, 
+    #                      names[i], ports[i], dataQueue)) for i in range(len(ports))]
+    ard_processes = [mp.Process(target = arduino_instances[i].read, args=(sensor_barrier,)) for i in range(len(ports))]
+    ard_processes.append(mp.Process(target = startPlotter, args=(dataQueue, sensorColors)))
+
+    process_manager.set_instances(arduino_instances)
 
     for p in ard_processes:
         p.start()
 
-    for process in ard_processes:
-        process.join()
+    while stop_Flag.value != 4:
+        continue
+
+    for arduino in range(5):
+        ard_processes[arduino].terminate()
+        print('Joining Arduino...')
+        ard_processes[arduino].join()
 
     print("Acquisition Finished!")
